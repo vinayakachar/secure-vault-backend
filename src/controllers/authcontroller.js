@@ -1,6 +1,8 @@
 import bycrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 let users=[];
+
 const registerUser=async(req,res)=>{
     try{
     const {username,password}=req.body;
@@ -40,12 +42,35 @@ const loginUser=async(req,res)=>{
        if(!isPasswordValid){
            return res.status(400).json({message:"Invalid username or password"});
         }
-         res.status(200).json({message:"Login successful"});
+
+        const accessToken=generateAccessToken(user);
+        const refreshToken=generateRefreshToken(user);
+
+         res.status(200).json({
+            message:"Login successful",
+            accessToken,
+            refreshToken
+        });
+         console.log(users);
+
+
     }
         catch(error){
             res.status(500).json({message:"server error",error:error.message});
         }
 
+}
+
+const generateAccessToken=(user)=>{
+    return jwt.sign({id:user.id,username:user.username},
+        process.env.ACCESS_TOKEN_SECRET,{expiresIn:'15m'}
+    )
+}
+
+const generateRefreshToken=(user)=>{
+    return jwt.sign({id:user.id,username:user.username},
+        process.env.REFRESH_TOKEN_SECRET,{expiresIn:'7d'}
+    )
 }
 
 export {registerUser,loginUser};
