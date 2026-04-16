@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express from "express";
 import authRoute from './routes/authroute.js';
+import mongoose from 'mongoose';
 
 
 dotenv.config({
@@ -9,12 +10,15 @@ dotenv.config({
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-app.get('/',(req, res) => {
-    res.send('Server is running');
-});
-
 app.use(express.json());
+
+mongoose.connect(process.env.MONGODB_URI)
+.then(()=>{
+    console.log("Connected to MongoDB");
+})
+.catch((error)=>{
+    console.error("Error connecting to MongoDB:",error);
+});
 
 app.use('/api/auth',authRoute);
 app.listen(PORT,() => {
