@@ -3,15 +3,18 @@ import express from "express";
 import authRoute from './routes/authroute.js';
 import mongoose from 'mongoose';
 import vaultRoute from './routes/vaultroute.js';
+import cors from 'cors';
 
 
 dotenv.config({
     path: "./.env"
 });
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
+app.use(cors());
 
 mongoose.connect(process.env.MONGODB_URI)
 .then(()=>{
