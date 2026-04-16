@@ -2,6 +2,7 @@ import express from 'express';
 import upload from '../middleware/uploadmiddleware.js';
 import  verifyToken from '../middleware/authMiddleware.js';
 import File from '../models/File.js';
+import getMyFiles from '../controllers/vaultcontroller.js';
 
 const router = express.Router();
 
@@ -20,5 +21,7 @@ router.post('/upload', verifyToken, upload.single('myFile'), async (req, res) =>
         res.status(500).json({ message: "Upload failed", error: error.message });
     }
 });
+
+router.get('/my-files', verifyToken, getMyFiles);
 
 export default router;
