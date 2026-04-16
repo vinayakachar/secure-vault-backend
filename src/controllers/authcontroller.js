@@ -1,46 +1,39 @@
 import bycrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
-let users=[];
 
-const registerUser=async(req,res)=>{
-    try{
+const registerUser=asyncHandler(async (req, res) => {
     const {username,password}=req.body;
     if(!username || !password){
          return res.status(400).json({message:"Plese provide valid username and passoword"})
     }
 
-    const existedUser=users.find(user=>user.username===username);
+    const existedUser=await User.findOne({username});
     if(existedUser){
         return res.status(400).json({message:"User already exists"});
     }
 
     const hashedpassword=await bycrypt.hash(password,10);
 
-    const newUser={id:Date.now().toString(),username,password:hashedpassword};
-    users.push(newUser);
+    const newUser=await User.create({username,password:hashedpassword});
 
-    res.status(201).json({message:"User registered successfully" });
-    }catch(error){
-        res.status(500).json({message:"Internal server error"});
-    }
+    res.status(201).json({message:`User ${newUser.username} registered successfully`,
+        id:newUser._id
+    });
 }
+);
 
-const loginUser=async(req,res)=>{
-    try{
-        const {username,password}=req.body;
+const loginUser=asyncHandler(async (req, res) => {
+    const {username,password}=req.body;
         if(!username || !password){
            return res.status(400).json({message:"Please provide valid username and password"});
         }
-        const user=users.find(user=>user.username===username);
+        const user=await User.findOne({username});
        
-        if(!user ){
+        if(!user || !(await bycrypt.compare(password,user.password))){
             return res.status(400).json({message:"Invalid username or password"});
-        }
-    
-         const isPasswordValid=await bycrypt.compare(password,user.password);
-       if(!isPasswordValid){
-           return res.status(400).json({message:"Invalid username or password"});
         }
 
         const accessToken=generateAccessToken(user);
@@ -51,15 +44,8 @@ const loginUser=async(req,res)=>{
             accessToken,
             refreshToken
         });
-         console.log(users);
 
-
-    }
-        catch(error){
-            res.status(500).json({message:"server error",error:error.message});
-        }
-
-}
+});
 
 const generateAccessToken=(user)=>{
     return jwt.sign({id:user.id,username:user.username},
