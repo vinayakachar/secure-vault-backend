@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from "express";
 import authRoute from './routes/authroute.js';
 import mongoose from 'mongoose';
+import vaultRoute from './routes/vaultroute.js';
 
 
 dotenv.config({
@@ -21,6 +22,8 @@ mongoose.connect(process.env.MONGODB_URI)
 });
 
 app.use('/api/auth',authRoute);
+app.use('/api/vault',vaultRoute);
+
 app.listen(PORT,() => {
     console.log(`Server started on http://localhost:${PORT}`);
 });

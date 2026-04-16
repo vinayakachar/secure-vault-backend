@@ -39,6 +39,9 @@ const loginUser=asyncHandler(async (req, res) => {
         const accessToken=generateAccessToken(user);
         const refreshToken=generateRefreshToken(user);
 
+        user.refreshToken=refreshToken; 
+        await user.save();
+
          res.status(200).json({
             message:"Login successful",
             accessToken,
@@ -59,4 +62,34 @@ const generateRefreshToken=(user)=>{
     )
 }
 
-export {registerUser,loginUser};
+const refreshAccessToken=asyncHandler(async(req,res)=>{
+    const {refreshToken}=req.body;
+    if(!refreshToken){
+        return res.status(400).json({message:"No refresh token provided"});
+    }
+    
+    const user=await User.findOne({refreshToken});  
+    if(!user){
+        return res.status(403).json({message:"Invalid refresh token(session expired)"});
+    }
+
+    try{
+        jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET);
+        const newAccessToken=generateAccessToken(user);
+    res.status(200).json({accessToken:newAccessToken,
+        message:"Access token refreshed successfully"
+    });
+    }catch(error){
+        return res.status(403).json({message:"Invalid refresh token(session expired)"});
+    }
+});
+
+const logoutUser=asyncHandler(async(req,res)=>{
+    const {refreshToken}=req.body;
+
+    await User.findOneAndUpdate({refreshToken},{refreshToken:null});
+    
+    res.status(200).json({message:"Logged out successfully"});
+});
+
+export {registerUser,loginUser,refreshAccessToken,logoutUser};
