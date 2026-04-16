@@ -2,7 +2,8 @@ import express from 'express';
 import upload from '../middleware/uploadmiddleware.js';
 import  verifyToken from '../middleware/authMiddleware.js';
 import File from '../models/File.js';
-import getMyFiles from '../controllers/vaultcontroller.js';
+import {getMyFiles} from '../controllers/vaultcontroller.js';
+import {deleteFile} from '../controllers/vaultcontroller.js';
 
 const router = express.Router();
 
@@ -23,5 +24,6 @@ router.post('/upload', verifyToken, upload.single('myFile'), async (req, res) =>
 });
 
 router.get('/my-files', verifyToken, getMyFiles);
+router.delete('/:id', verifyToken, deleteFile);
 
 export default router;
